@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Repeating Name Schedule</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f7f9fc;
+      color: #333;
+      margin: 0;
+      padding: 40px;
+    }
+
+    h2 {
+      color: #3f51b5;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      color: #444;
+      margin-top: 40px;
+    }
+
+    .section {
+      margin-top: 30px;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #3f51b5;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f4f8;
+    }
+
+    tr:hover {
+      background-color: #e1e9f8;
+    }
+
+    button {
+      padding: 8px 16px;
+      margin: 6px 0;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      background-color: #3f51b5;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #32408f;
+    }
+
+    input[type="date"],
+    select {
+      padding: 8px;
+      font-size: 14px;
+      margin-right: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    #today-turn {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #388e3c;
+      background: #e8f5e9;
+      padding: 10px 20px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+
+    ul li {
+      margin-bottom: 5px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px;
+      }
+
+      table, th, td {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🔁 Repeating Name Schedule</h2>
+  <div id="today-turn"></div>
+
+  <div class="section">
+    <button onclick="renderSchedule()">🔄 Show 15 Days Before & 30 After</button>
+    <button onclick="renderFullSchedule()">📜 Show Full Year Schedule</button>
+  </div>
+
+  <table id="schedule">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Name</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="section">
+    <h3>🔍 Check Turn on a Specific Date</h3>
+    <input type="date" id="futureDate" />
+    <button onclick="checkDate()">Check</button>
+    <p id="result"></p>
+  </div>
+
+  <div class="section">
+    <h3>👤 Show All Dates for a Person</h3>
+    <select id="personSelect">
+      <option value="">-- Select Person --</option>
+      <option value="BHUNESH">BHUNESH</option>
+      <option value="MANJEET">MANJEET</option>
+      <option value="SONU">SONU</option>
+      <option value="ASHOK">ASHOK</option>
+      <option value="RAHUL">RAHUL</option>
+    </select>
+    <button onclick="showPersonDates()">Show</button>
+    <ul id="personDatesList"></ul>
+  </div>
+
+  <script>
+    const pattern = [
+      "BHUNESH", "BHUNESH",
+      "MANJEET", "MANJEET",
+      "SONU",
+      "ASHOK", "ASHOK",
+      "RAHUL", "RAHUL"
+    ];
+
+    const tbody = document.querySelector("#schedule tbody");
+    const todayTurn = document.getElementById("today-turn");
+    const patternStartDate = new Date("2025-06-10");
+
+    function getTurnName(date) {
+      const dayDiff = Math.floor((date - patternStartDate) / (1000 * 60 * 60 * 24));
+      const index = ((dayDiff % pattern.length) + pattern.length) % pattern.length;
+      return pattern[index];
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString("en-GB");
+    }
+
+    function renderSchedule() {
+      tbody.innerHTML = "";
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      for (let i = -15; i < 30; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const name = getTurnName(date);
+        const row = `<tr><td>${formatDate(date)}</td><td>${name}</td></tr>`;
+        tbody.innerHTML += row;
+      }
+
+      const todayName = getTurnName(today);
+      todayTurn.textContent = `✅ Today's turn (${formatDate(today)}): ${todayName}`;
+    }
+
+    function renderFullSchedule() {
+      tbody.innerHTML = "";
+      const start = new Date();
+      start.setDate(start.getDate() - 180);
+      start.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < 365; i++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + i);
+        const name = getTurnName(date);
+        const row = `<tr><td>${formatDate(date)}</td><td>${name}</td></tr>`;
+        tbody.innerHTML += row;
+      }
+    }
+
+    function checkDate() {
+      const input = document.getElementById("futureDate").value;
+      const result = document.getElementById("result");
+
+      if (!input) {
+        result.textContent = "❗ Please select a date.";
+        return;
+      }
+
+      const selectedDate = new Date(input);
+      selectedDate.setHours(0, 0, 0, 0);
+      const name = getTurnName(selectedDate);
+      result.textContent = `📅 On ${formatDate(selectedDate)}, it was ${name}'s turn.`;
+    }
+
+    function showPersonDates() {
+      const person = document.getElementById("personSelect").value;
+      const list = document.getElementById("personDatesList");
+      list.innerHTML = "";
+
+      if (!person) {
+        list.innerHTML = "<li>❗ Please select a person.</li>";
+        return;
+      }
+
+      const start = new Date();
+      start.setDate(start.getDate() - 180);
+      start.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < 365; i++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + i);
+        const name = getTurnName(date);
+        if (name === person) {
+          const li = document.createElement("li");
+          li.textContent = formatDate(date);
+          list.appendChild(li);
+        }
+      }
+    }
+
+    renderSchedule();
+  </script>
+</body>
+</html>
